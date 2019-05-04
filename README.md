@@ -345,6 +345,26 @@ Two main usecases:
 1.Providing config information for apps running inside pods
 2. Specifying config infrmation for control plane(controllers )
 
+kubectl create configmap fmap --from-file=file1.txt --from-file=file2.txt
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: special-config
+  namespace: default
+data:
+  special.how: very
+  
+ Inside pod yaml file
+ 
+ env:
+   - name: SPECIAL_LEVEL_KEY
+     valueFrom:
+       configMapKeyRef:
+         name: special-config
+	 key: special.how
+	 
+
 secret
 
 Pass sensitive information to pods.
@@ -352,7 +372,48 @@ You can store secrets using kubernetes api and mount those secrets as files thes
 using the secret volume
 You should know secrets are backed by RAM based file system which ensures contents of this files are never written to non volatile storage
 
+	apiVersion: v1
+	kind: Secret
+	metadata:
+	     name: test-secret
+	data:
+	     username: VINEETH
+	     password: ###@!#
+	     
+Once the secrets are created we can access from volumes inside the pod yaml file.
 
+spec: 
+   conatiners:
+   - name: test-container
+     image: nginx
+     volumeMounts:
+     // name must matc the voume name below
+     - name: secret-volume
+       mountPath: /etc/secret-volume
+   // The secret data is exposed to containers in the Pod through a volume.
+   volumes:
+   	- name: secret-volume
+	  secret:
+	     secretName: test-secret
+
+We can access this secret by getting into the container shell and by going to etc/secret-volume.
+
+We can create secrets directly from files.
+
+kubectl create secret generic sensitive --from-file=./username.txt --from-file=./password.txt
+Inside pod yaml file
+
+env:
+   - name: SECRET_USERNAME
+     valueFrom:
+        secretKeyRef:
+	   name: sensitive
+	   key: username.txt
+  - name: SECRET_PASSWORD
+    valueFrom:
+         secretKeyRef:
+	    name: sensitive
+	    key: password.txt
 
 
 ### Using PersistentVolumes ###
@@ -362,6 +423,16 @@ we mount the persistnt volumes with containers
 volumeMounts:
 - mountPath: /test-pd
   name: test-volume
+  
+  
+
+### Conatiners in Pod ###
+
+1. Configure Nodes to Authenticate to Private Repos. All pods can pull any image.
+2. Pre-pull images. Pods can only use cached images.
+3. ImagePullSecrets on each pod. Only pods with secret can pull secrets.
+  
+
 
 
 
