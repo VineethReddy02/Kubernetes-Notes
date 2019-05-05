@@ -278,7 +278,7 @@ Merging changes.
 
 Using Volumes
 
-`apiVersion: v1
+```apiVersion: v1
 kind: Pod
 metadata: 
 		name: configmap-pod
@@ -296,7 +296,7 @@ spec:
 	   items:
 	      - key: log_level
 	        path: log_level
-`
+```
 						  
 						  
 						  
@@ -347,7 +347,7 @@ Two main usecases:
 2. Specifying config infrmation for control plane(controllers )
 
 kubectl create configmap fmap --from-file=file1.txt --from-file=file2.txt
-`
+```
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -364,7 +364,7 @@ data:
        configMapKeyRef:
          name: special-config
 	 key: special.how
-`	 
+```	 
 
 secret
 
@@ -372,7 +372,7 @@ Pass sensitive information to pods.
 You can store secrets using kubernetes api and mount those secrets as files these files will be available to use by pods.
 using the secret volume
 You should know secrets are backed by RAM based file system which ensures contents of this files are never written to non volatile storage
-`
+```
 	apiVersion: v1
 	kind: Secret
 	metadata:
@@ -380,11 +380,11 @@ You should know secrets are backed by RAM based file system which ensures conten
 	data:
 	     username: VINEETH
 	     password: ###@!#
-`
+```
 	     
 Once the secrets are created we can access from volumes inside the pod yaml file.
-`
-spec: 
+```
+spec:
    conatiners:
    - name: test-container
      image: nginx
@@ -397,7 +397,7 @@ spec:
    	- name: secret-volume
 	  secret:
 	     secretName: test-secret
-`
+```
 We can access this secret by getting into the container shell and by going to etc/secret-volume.
 
 We can create secrets directly from files.
