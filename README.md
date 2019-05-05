@@ -283,19 +283,19 @@ kind: Pod
 metadata: 
 		name: configmap-pod
 spec:
-		containers:
-			- name: test
-				image: bisybox
-				volumeMounts:                                   // Each container will mount independently
-					- name : config-vol
-					  mountPath: /etc/config					// different paths in each container.
-		volumes:                                                   //Define volume in pod spec
-			-name: config-vol
-			  configMap:
-					name: log-config
-					items:
-						- key: log_level
-						  path: log_level
+   containers:
+	- name: test
+	  image: bisybox
+    volumeMounts:         // Each container will mount independently
+	- name : config-vol
+	  mountPath: /etc/config					// different paths in each container.
+    volumes:                                                   //Define volume in pod spec
+	-name: config-vol
+	configMap:
+	   name: log-config
+	   items:
+	      - key: log_level
+	        path: log_level
 						  
 						  
 						  
@@ -431,13 +431,216 @@ volumeMounts:
 1. Configure Nodes to Authenticate to Private Repos. All pods can pull any image.
 2. Pre-pull images. Pods can only use cached images.
 3. ImagePullSecrets on each pod. Only pods with secret can pull secrets.
+ 
+ What Environment Do Containers See ?
+ 
+ 1. Filesystem
+ 	Image(at root)
+	Associated Volumes
+	  - ordinary
+	  - persistent
+	  
+ 2. Container
+ 	Hostname
+Hostname refers to the pod name in which conatiner is running.
+We can get by cmd hostname or gethostname function call from libc.
+
+ 3. Pod
+ 	Pod Name
+	User-defined
+	environment variables using Downward API
+4. Services
+	List of all services
+
+	
+	  
+ 
   
+### Services for stable IP Addresses ###
+
+Service object - load balancer
+Service = Logical set of backend pods + stable front-end
+Front-end: Static clusterIP address + Port + DNS Name
+Back-end: Logical set of backend pods(label selector)
+
+
+#### Setting up environment varibales #####
+
+spec:
+  conatiners:
+  - name: envar-demo-container
+    image: gcr.io/google-samples/node-hello:1.0
+    env:
+    - name: DEMO
+      value: "HELLO"
+    - name: DEMO1
+      valueL "HEY"
+      
+kubectl exec -it demo-pod -- /bin/bash
+This will take into the bash shell within our conatiner.
+`printenv` \\ will print all env variables.
+
+
+### Downward API ###
+
+Passing information from pod to conatiner such as metadata, annotations.
+
+pods/inject/dapi-volume.yaml 
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubernetes-downwardapi-volume-example
+  labels:
+    zone: us-est-coast
+    cluster: test-cluster1
+    rack: rack-22
+  annotations:
+    build: two
+    builder: john-doe
+spec:
+  containers:
+    - name: client-container
+      image: k8s.gcr.io/busybox
+      command: ["sh", "-c"]
+      args:
+      - while true; do
+          if [[ -e /etc/podinfo/labels ]]; then
+            echo -en '\n\n'; cat /etc/podinfo/labels; fi;
+          if [[ -e /etc/podinfo/annotations ]]; then
+            echo -en '\n\n'; cat /etc/podinfo/annotations; fi;
+          sleep 5;
+        done;
+      volumeMounts:
+        - name: podinfo
+          mountPath: /etc/podinfo
+          readOnly: false
+  volumes:
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: "labels"
+            fieldRef:
+              fieldPath: metadata.labels
+          - path: "annotations"
+            fieldRef:
+              fieldPath: metadata.annotations
 
 
 
+In the above example we are making pod metadata such as labels, annotations available for conatiners.
+etc/podinfo/annotations annotations are available in this file.
+etc/podinfo/labels labels are available in this file.
 
 
+### Conatiner Lifecycle Hooks ###
 
+1. Post Start
+
+Called immediately after conatiner created
+No parameters
+
+2. Pre Stop
+
+Immediately before conatiner terminates.
+
+Blocking - must complete before conatiner can be deleted. This is synchronous.
+
+ 1. Hook handkers
+    - Exec //This executes shell scripts by getting inside conatiner
+    - HTTP // We can make calls to specific endpoint on the conatiner
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lifecycle-demo
+spec:
+  conatiners:
+  - name: lifecycle-demo-container
+    image: nginx
+    lifecycle:
+      postStart:
+        exec:
+	  command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+      preStop:
+        exec:
+	  command: ["/usr/sbin/nginx","-s","quit"]
+	  
+	  
+	  
+### Pod Node Matching ###
+
+How can pods be assigned to specific nodes?
+
+  Handled by kube-scheduler
+    -Quite smart (it makes sure the nodes which has resources gets the pod assigned.)
+  Granular usecases:
+    -specific hardware: SSD required by pod
+    -Colocate pods on same node: they communicate a lot.
+    -High-availability:force pods to be an different nodes.
+
+
+nodeSelector (nodes have predefined labels hostname, zone, OS, instance type...)
+-Simple
+-Tag nodes with labels
+-Add nodeSelector to pod template
+-Pods will only reside on nodes that are selected ny nodeSelector
+-Simple but crude - hard constriant
+
+Affinity and Anti-Affinity
+
+Node Affinity (nodes have predefined labels hostname, zone, OS, instance type...)
+-steer pod to node
+- can be 'soft'
+-Only affinity (for anti-affinity use taints)
+
+Pod Affinity
+
+-Steer pods towards or away from pods.
+-Affinity: pods close to each other
+-Anti-Affinity: pods away from each other.
+
+
+apiVersion: v1
+kind: Pod
+metadata: Pod
+  name: nginx
+  labels:
+    env: test
+spec:
+  conatiners:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  nodeSelector:
+    disktype: ssd
+    
+    
+### Taints and Tolerations ###
+
+Using nodeslector you can make sure this pod should run on specific node but using taints and tolerations you can make sure certain pods can only run on certain nodes.
+
+Dedicated nodes for certain users
+  - Taint subset of nodes
+  - Only add tolerations to pods of those users.
+Nodes with special hardware
+  - Taint nodes with GPUs
+  - Add toleration only pods running ML jobs
+
+Taints based on Node Condition
+
+  - New feature - in Alpha in v1.8
+  - Taints added by node controller
+
+Taints added by node controller
+  - node.kubernetes.io/memory-pressure
+  - node.kubernetes.io/disk-pressure
+  - node.kubernetes.io/out-of-disk
+  
+ Pods with tolerations are scheduled on this nodes.
+ This will happen if flag set on nodes
+  - TaintNodesByCondition=true
+	  
 
 
 
