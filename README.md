@@ -404,7 +404,7 @@ We can create secrets directly from files.
 
 kubectl create secret generic sensitive --from-file=./username.txt --from-file=./password.txt
 Inside pod yaml file
-`
+```
 env:
    - name: SECRET_USERNAME
      valueFrom:
@@ -416,17 +416,17 @@ env:
          secretKeyRef:
 	    name: sensitive
 	    key: password.txt
-`
+```
 
 
 ### Using PersistentVolumes ###
 
 we mount the persistnt volumes with containers 
-`
+```
 volumeMounts:
 - mountPath: /test-pd
   name: test-volume
-`
+```
   
   
 
@@ -469,7 +469,7 @@ Back-end: Logical set of backend pods(label selector)
 
 
 #### Setting up environment varibales #####
-
+```
 spec:
   conatiners:
   - name: envar-demo-container
@@ -479,7 +479,7 @@ spec:
       value: "HELLO"
     - name: DEMO1
       valueL "HEY"
-      
+ ```     
 kubectl exec -it demo-pod -- /bin/bash
 This will take into the bash shell within our conatiner.
 `printenv` \\ will print all env variables.
@@ -490,7 +490,7 @@ This will take into the bash shell within our conatiner.
 Passing information from pod to conatiner such as metadata, annotations.
 
 pods/inject/dapi-volume.yaml 
-
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -529,7 +529,7 @@ spec:
           - path: "annotations"
             fieldRef:
               fieldPath: metadata.annotations
-
+```
 
 
 In the above example we are making pod metadata such as labels, annotations available for conatiners.
@@ -553,7 +553,7 @@ Blocking - must complete before conatiner can be deleted. This is synchronous.
  1. Hook handkers
     - Exec //This executes shell scripts by getting inside conatiner
     - HTTP // We can make calls to specific endpoint on the conatiner
-
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -569,7 +569,7 @@ spec:
       preStop:
         exec:
 	  command: ["/usr/sbin/nginx","-s","quit"]
-	  
+```	  
 	  
 	  
 ### Pod Node Matching ###
@@ -604,7 +604,7 @@ Pod Affinity
 -Affinity: pods close to each other
 -Anti-Affinity: pods away from each other.
 
-
+```
 apiVersion: v1
 kind: Pod
 metadata: Pod
@@ -618,7 +618,7 @@ spec:
     imagePullPolicy: IfNotPresent
   nodeSelector:
     disktype: ssd
-    
+```    
     
 ### Taints and Tolerations ###
 
