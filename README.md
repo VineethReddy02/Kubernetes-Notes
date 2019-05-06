@@ -644,6 +644,63 @@ Taints added by node controller
  Pods with tolerations are scheduled on this nodes.
  This will happen if flag set on nodes
   - TaintNodesByCondition=true
+  
+  To taint a node
+  
+  ``` kubectl taint nodes NODE_NAME env=dev:NoScedule```
+  ``` kubectl label deployments/nginx env=dev``` //This makes sure the pods from the deployment are not schduled on tainted node because
+  env=dev:NoSchedule the pods with this label will not be scheduled on the node.
+  
+  
+  ```
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: nginx-deployment
+    labels:
+      app: nginx
+spec:
+  replicas: 7
+  selector: 
+    matchLabels:
+      app: ngnix
+  template:
+    metadata:
+      labels:
+        app: nginx
+   spec:
+     containers:
+     - name: nginx
+       image: nginx:latest
+       ports:
+       - containerPort: 80
+     tolerations:
+     - key: "dev"
+       operator: "Equal"
+       value: "env"
+       effect: "NoSchedule"
+ ```
+ 
+ The above deployment has toleration so the pods can even be schduled on tainted nodes.
+ 
+ ### Init Containers ###
+ 
+ - Run before app containers.
+ - Always run-to-completion
+ - Run serially (each only starts after previous one finishes)
+ If init containers fails kubernetes will repeatedly restart the pod to succeed the init containers.
+ 
+ Usecases:
+ - Run utilities that should run before app container.
+ - Different namespace/isolation from app containers.
+ - Security reasons.
+ - Include utilities or setup (gitclone, register app)
+ - BLock or delay start of app contianer.
+ 
+  Downward API is used to share metadata from the pod to the container.
+  
+  
+  
 	  
 
 
