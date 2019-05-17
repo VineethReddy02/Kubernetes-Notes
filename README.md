@@ -699,6 +699,277 @@ spec:
  
   Downward API is used to share metadata from the pod to the container.
   
+  ```
+  apiVersion: v1
+  kind: Pod
+  metadata: 
+      name: init-demo
+  spec:
+      containers:
+      - name: nginx
+        image: nginx
+	ports:
+	- containerPort: 80
+	volumeMunts:
+	- name: workdir
+	  mountPath: /usr/share/nginx/html
+      # These containers are run during pod initialization
+      initContainers:
+      - name: install
+        image: busybox
+	command:
+	- wget
+	- "-O"
+	- "/work-dir/index.html"
+	- http://google.com
+	volumeMounts:
+	- name: workdir
+	  mountPath: "/work-dir"
+       dnsPolicy: Default
+       volumes:
+       - name:workdir
+         emptyDir: {}
+	 
+```
+
+ ### Pod Lifecycle
+ 
+   - Pending: Request accepted, but not yet fully created
+   - Running: Pod bound to node, all containers started
+   - Succeeded: All containers are terminated successfully (will not be restarted).
+   - Failed: All containers have terminated, and at least one failed.
+   - Unknown: Pod status could not be queried - host error likely.
+   
+   Note:
+   - Container within pod are deployed in an all or nothing manner.
+   - Entire pod is hosted on the same node.
+   
+   Restart policy for conatiners in a Pod.
+   
+   - Always (default)
+   - On-failure
+   - Never
+   
+
+### Probes
+
+Kubelet sends probes to containers
+
+All succeeded? Pod status = Succeeded
+Any failed? Pod status = Failed
+Any running? Pod status = Running
+
+
+#### Liveness Probes
+
+- Failed? Kubelet assumes container dead( This probe certifies that pod is running else 
+  retries until the probe succeeds.)
+- Restart policy will kick in.
+
+Usecase: Kill and restart if probe fails. Add liveness probe, Specify restart plicy of Always or On-Failure.
+
+#### Readiness Probes
+
+- Ready to service requests?
+- Failed? Endpoint object will remove pod from services.
+
+Usecase: Send traffic only after probe succeeds. Pod goes live, But will only accept traffic after readiness
+  probe succeeds. This is also referred as "Container that takes itself down".
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: livesness
+  namee: livesness-exec
+spec:
+  containers:
+  - name: liveness
+    image: k8s.gcr.io/busybox
+    args:
+    - /bin/sh
+    - -c
+    - touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600
+    livenessProbe:
+      exec:
+        command:
+	- cat
+	- /tmp/healthy
+      initialDelaySeconds: 5 //it says to wait 5 sec before starting first probe.
+      periodSeconds: 5 // kubelet will perform liveness probe for every 5 seconds.
+      
+```
+In the above pod livenessProbe has a cmd if cmd fails it will go ahead and kill the container.
+
+### Pod Presets
+
+Pod Presets are way to inject values during pod creation using labels which makes them loosely coupled. Values we pass may involve secrets, volumes, voumeMounts and environment variables.
+	
+	
+### Pod Priorities
+
+Create PriorityClass Object
+
+```
+apiVersion: v1appha1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+description: "XYZ"
+```
+
+Reference from Pod Spec
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  priorityClassName: high-priority
+  
+```
+#### Scheduling Order
+
+High-priority pod can 'jump the queue'.
+
+#### Preemption
+
+- Low-priority pod maybe pre-empted to make way( if no node currently available to run gigh-priority pod). Preempted pod gets a graceful termination period.
+
+
+### ReplicaSets ###
+
+Pod
+  - Containers inside pod template
+  
+ReplicaSet:
+  - pod template
+  - number of replicas
+  - self-healing and scaling
+  
+Deployment:
+  - Conatins spec of ReplicaSet within it
+  - Versioning
+  - Fast rollback
+  - Advanced deployments
+  
+```
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend
+    matchExpressions:
+      - {key: tier, operator: In, value: [frontend]}
+  template:
+    metadata:
+      labels:
+        apps: guestbook
+	tier: frontend
+   spec:
+     containers:
+     - name: php-redis
+       image: hello:v3
+       ports:
+       - containerPort:80
+```
+Deleting ReplicaSets
+
+- Deleting RelicaSet and its Pods
+    - Use kubectl delete
+    
+- Deleting just ReplicaSet but not its Pods
+    - Use kubectl delete --cascade=false
+    
+- Deleting ReplicaSet orphans its pods
+    - Pods are now vulnerable to crashes
+    
+- Probably want a new RelicaSet to adopt them
+    - pod template will not apply.
+    
+    
+Auto-Scaling a ReplicaSet
+
+- Horizontal Pod Autoscaler Target
+```
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata: 
+  name: frontend-scaler
+spec:
+  scaleTargetRef:
+    kind: ReplicaSet
+    name: frontend
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+```
+
+  - Control-loop to track actual and desired CPU utilisation in pod.
+  - Target: ReplicationCOntroller, Deployments, ReplicaSets
+  - Policy CPU utilisation or custom metrics
+  - Won't work with non scaling objects: DaemonSets
+  
+Working with Horizontal Pod AutoScalers
+  ``` kubectl create hpa ```
+  ``` kubectl get hpa ```
+  ``` kubectl describe hpa```
+  ``` kubectl autoscale rs front-end --min=3 --max=10 --cpu-percent=50```
+  
+Thrashing is always a risk with autoscaling. i.e immediate scale up and down based on target metrics.
+Cooldown periods help HPA avoid this
+  --horizontal-pod-autoscaler-downscale-delay
+  --horizontal-pod-autoscaler-upscale-delay
+
+```kubectl delete pods --all```
+But replicaset will create the deleted pods from the above cmd  pods associated with is label.
+To delete this pods completely. Use the below cmd
+```kubectl delete rs/frontend```
+
+To remove the replicationSet controller on the pods.
+```kubectl delete rs/frontend --cascade=false``` 
+This will not delete the pods but the association between replicationSet and pods is detached.
+After this operation pods will not be created on deleton. They are vulnerable to crashes. As they are not governed by replicaset.
+This will delete the replicaSet object.
+```kubectl get rs``` //This will shows no replicaSet as its deleted
+
+ReplicaSets are lossely couple by the labels. As they are binded using labels. We can delete replicaset without touching underlying pods.
+We can even isolate the pods from the replicaSet by changing the labels.
+
+To modify the live running pod run below cmd. By this we can detach the live pod from repicaset by changing the label. After this replicaset will create again detached pods as it always works for desired state.
+```KUBE_EDITOR="nano" kubectl edit pod frontend-2d5b4``` // 
+Scaling replicaSet object
+```nano frontend.yaml``` //modify replicas field to desired number.
+```kubectl apply -f frontend.yaml``` // This will apply the modified changes to existing replicaset. But not good practice.
+
+
+
+
+ 
+
+
+
+
+
+
+
   
   
 	  
