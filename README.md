@@ -960,19 +960,130 @@ Scaling replicaSet object
 ```kubectl apply -f frontend.yaml``` // This will apply the modified changes to existing replicaset. But not good practice.
 
 
+### Deployments
 
+- Deployments are the important objects in kubernetes. Usually deployments are used in production abd they comprise of replicaset template within them. When we use deployments we don't directly work with pods or replicaset objects.
+
+- When a container version inside a deployment object is updated. The new replicaset and new pods are created. Old replicaset continues to exist. Pods in old replicaset gradually reduced to zero.
+
+Deployment objects provide 
+- Versioning
+- Instant rollback
+- Rolling deployments
+- Blue-green
+- Canary deployments
+
+Deployment Usecases
+
+- Primary usecase: To rollout a ReplicaSet( create new pods)
+- Update state of existing deployment: just update pod template
+    - new replicaset created, pods moved over in a controlled manner.
+- Rollback to earlier version: simply go back to previous revision of deployment.
+- Scale up: edit number of replicas.
+- Pause/Resume deployments mid-way (after fixing bugs)
+- Check status of deployments (using the status field)
+- Clean up old replicasets that are not needed any more.
+
+Fields in Deployment
+
+- Selector: Make sure the selector labels in the deployment are unique in every other deployment. This selector label is used replicaset to govern its pods.
+- Strategy: How will old pods be replaced.
+     - .spec.strategy.type == Recreate
+     - .spec.strategy.type == RollingUpdate
+- More Hooks for Rolling Update:
+     - .spec.strategy.rollingUpdate.maxUnavailable // This will make only specific number of pods to be deleted at a particular instance. Can be mentioned in number or percentage of pods.
+     - .spec.strategy.rollingUpdate.maxSurge
+     
+- progressDeadlineSeconds // This tells the kubernetes how long should it wait before confirming it as failed.
+- minReadySeconds
+- rollbackTo
+- revisionHistoryLimit
+- paused.
+
+Rolling back Deployment
+
+- New revisions are created for any change in pod template
+    - These changes are trivial to roll back.
+- Other changes to manifest: eg. scaling do not create new revision
+    - Can not roll back scaling easily.
+    
+kubectl apply -f foo.yaml --record // The flag --records the changes made to specific object.
+kubectl rollout history deploymentname // This gives the history of changes applied on specific deployment. With revision number
+kubectl rollout undo deployment/nginx-deployment // will undo the rollout.
+kubectl rollout undo deployment/nginx-deployment --to-revision=2 // This the revision you want to roll back to. This revision number can be obtained by cmd kubectl rollout history deploymentname.
+
+Pausing and Resuming Deployments.
+
+Imperative kubectl resume/pause commands
+
+   ```kubectl rollout resume deploy/nginx-deployment
+      deployment "nginx" resumed
+      ```
+      ```kubectl rollout pause deployment/nginx-deployment
+         deployment "nginx-deployment" paused
+	 ```
+	 ```kubectl rollout status deployment/nginx-deployment
+	 ```
+	 
+Declarative: Change spec.Paused boolean
+  - Does not change pod template
+  - Does mot trigger revision creation.
+
+- Can make changes or debug while paused.
+- Changes to pod template while paused will not take effect until resumed.
+- Can not rollback paused deployment need to resume it first.
+
+
+### Clean-Up Policy
+
+- Important: Don't change this unless you understand it.
+- Replicasets associated with deployment
+    - New Replicaset for each revision
+    - So, one Replicaset for each change to pod template.
+     - Over period of time. We end up with so many revisions. We can clear them up or we can maintain desired number of older revisions.
+     - .spec.revisionHistoryLimit controls how many such revisions kept.
+- Setting .spec.revisionHistoryLimit = 0 c;eans up all history, no rollback possible.
 
  
+### Scaling Deployments
 
+- Imperative: kubectl scale commands
+``` kubectl scale deployments nginx-deployment --replicaa=10
+deployment "nginx-deployment" scaled
+```
 
+- Declarative: Change number of repplicas and re-apply
+    - Scaling does not change pod template.
+    - So does not trigger creation of a new version.
+    - Can't rollback scaling that easily.
+    
+- Can also scale using horizontal pod autoscaler (HPA)
+  ```kubectl autoscale deployment nginx-deployment --min=10 --max=15 --cpu-percent=80
+     deployment "nginx-deployment" autoscaled"
+     ```
+     
+Proportinate Scaling
 
+- During rolling deployments, two ReplicaSets exist
+    - old version
+    - new version
+- Proportinate scaling will scale pods in both ReplicaSets.
 
+Imperative way of scaling
+``` kubectl scale deployments nginx-deployment --replicas=3```
 
+Declarative way of scaling
 
+By editing yaml file and updating replicas field and kubectl apply -f name.yaml will scale declaratively.
 
   
+  Imperative way of changing the image version
+ ``` kubectl set image deployment/nginx-deployment nginx=nginx:1.9.1```
+ 
+ 
+ 
   
-	  
+
 
 
 
