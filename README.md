@@ -1080,12 +1080,121 @@ By editing yaml file and updating replicas field and kubectl apply -f name.yaml 
   Imperative way of changing the image version
  ``` kubectl set image deployment/nginx-deployment nginx=nginx:1.9.1```
  
+ ### Stateful Sets
  
+ - Manage Pods
+ - Maintians a sticky identity
+ - Pods are created from the same spec
+ - Not interchangable
+ - Identifier maintains across any rescheduling.
  
-  
-
-
-
-
+ Use cases
  
+ - Ordered, graceful deployment and scaling
+ - Ordered, graceful deletion and termination.
+ - Ordered, automated rolling updates.
+ - Stable, unique network identifiers.
+ - Stable, persistent storage.
+ 
+Limitations:
 
+- Pod must either be provisioned by a PersistentVolume Provisioner or k8s admin.
+- Deleting and/or scaling a StatefulSet down will not delete the volumes associated with the statefulSet.
+- StatefulSets currently require a Headless Service.
+
+Deployment and Scaling Guarantees.
+
+- N replicas, when Pods are being deployed, created sequentially, in order from (0...N-1)
+- When Pods are being deleted, they are terminated in reverse order from (N-1...0)
+- Before a scaling operation is applied to a Pod, all of its predecessors must be Running and Ready.
+- Before a Pod is terminated, all of its successors must be completely shutdown.
+```
+ apiVersion: v1
+ kind: StatefulSet
+ metadata:
+  name: web
+ spec:
+  serviceName: "nginx"
+  replicas: 2
+  selector: 
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        port: 8080
+	
+```
+In statefulsets pods have sequentially naming no random generation of names.
+
+### DaemonSet
+
+- As we add nodes to the k8s cluster this type pods are also added to node. In precise they are bacckground processes such log collection etc...
+- Deleting the daemon set will clear the pods it has created.
+
+Usecases
+- Cluster storage daemons
+- log Collection daemons
+- node monitoring darmons.
+
+There are alternatives to daemon sets by directly creating daemon process on nodes by initialisation scripts.
+Satic pods these are controlled by kubelet they are not handled by api server or using kubectl.
+
+
+### Cron-Jobs
+
+Pods that do their job, then go away.
+- Create pods
+- Track their completion.
+- Ensure specified number terminate successfully.
+- Deleting job cleans up pods.
+
+Types of Jobs
+- Non-parallel jobs: Can use to force 1 pod to run successfully. 
+- Parallel jobs with fixed completion count: Job completess when number of completions reaches target.
+- Parallel jobs with work queue: Requires coordination.
+ 
+Tracking Pods of Jobs
+- Once completed: no more pods created
+- Existing pods not deleted.
+- State set to terminated.
+- Can find them using kubectl show pods -a 
+- You can delete them after listing them using above cmd.
+
+If pods keeps failing, jobs keep creating. this leads to infinite loop. Use spec.activeDeadlineSeconds field to prevent this. The job will be ended after the mentioned time.
+
+Usecases
+-Manages time based job
+  - Once at a specified point in time.
+  - Repeatedly at a specified point in time.
+-Schedule a job execution at a given point in time. 
+
+Limitations:
+- Jobs should be idempotent
+- Only responsible for creating jobs that match its schedule.
+
+### Batch Processing
+
+```
+apiVersion: batch/v1
+kind: Job
+metadata: 
+  name: pi
+spec:
+  template: 
+    spec:
+      containers:
+      - name: pi
+        image: per1
+	command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      restartPolicy: Never
+   backoffLimit: 4
+   
+   ```
+
+``` kubectl get pods --show-all``` 
+we need to use --show-all flag as the job objects come into existence execute its payload and gets completed. 
