@@ -1020,20 +1020,12 @@ Imperative kubectl resume/pause commands
 
 
    ```
-   kubectl rollout resume deploy/nginx-deployment
+   $kubectl rollout resume deploy/nginx-deployment
    deployment "nginx" resumed
-    ```
-    
-    
-      ```
-      kubectl rollout pause deployment/nginx-deployment
-         deployment "nginx-deployment" paused
-      ```
-      
-      
-	 ```
-	 kubectl rollout status deployment/nginx-deployment
-	 ```
+   $kubectl rollout pause deployment/nginx-deployment
+   deployment "nginx-deployment" paused
+   $kubectl rollout status deployment/nginx-deployment
+   ```
 	 
 Declarative: Change spec.Paused boolean
   - Does not change pod template.
@@ -1050,8 +1042,8 @@ Declarative: Change spec.Paused boolean
 - Replicasets associated with deployment
     - New Replicaset for each revision
     - So, one Replicaset for each change to pod template.
-     - Over period of time. We end up with so many revisions. We can clear them up or we can maintain desired number of older revisions.
-     - .spec.revisionHistoryLimit controls how many such revisions kept.
+    - Over period of time. We end up with so many revisions. We can clear them up or we can maintain desired number of older revisions.
+    - .spec.revisionHistoryLimit controls how many such revisions kept.
 - Setting .spec.revisionHistoryLimit = 0 c;eans up all history, no rollback possible.
 
  
@@ -1073,8 +1065,8 @@ deployment "nginx-deployment" scaled
 
   ```
   kubectl autoscale deployment nginx-deployment --min=10 --max=15 --cpu-percent=80
-     deployment "nginx-deployment" autoscaled"
-     ```
+  deployment "nginx-deployment" autoscaled"
+   ```
      
 Proportinate Scaling
 
@@ -1084,6 +1076,7 @@ Proportinate Scaling
 - Proportinate scaling will scale pods in both ReplicaSets.
 
 Imperative way of scaling
+
 ```
 kubectl scale deployments nginx-deployment --replicas=3
 ```
