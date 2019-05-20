@@ -1018,16 +1018,21 @@ Pausing and Resuming Deployments.
 
 Imperative kubectl resume/pause commands
 
+
    ```
    kubectl rollout resume deploy/nginx-deployment
    deployment "nginx" resumed
     ```
     
-      ```kubectl rollout pause deployment/nginx-deployment
+    
+      ```
+      kubectl rollout pause deployment/nginx-deployment
          deployment "nginx-deployment" paused
       ```
       
-	 ```kubectl rollout status deployment/nginx-deployment
+      
+	 ```
+	 kubectl rollout status deployment/nginx-deployment
 	 ```
 	 
 Declarative: Change spec.Paused boolean
