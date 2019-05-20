@@ -1018,17 +1018,20 @@ Pausing and Resuming Deployments.
 
 Imperative kubectl resume/pause commands
 
-   ```kubectl rollout resume deploy/nginx-deployment
-      deployment "nginx" resumed
-      ```
+   ```
+   kubectl rollout resume deploy/nginx-deployment
+   deployment "nginx" resumed
+    ```
+    
       ```kubectl rollout pause deployment/nginx-deployment
          deployment "nginx-deployment" paused
-	 ```
+      ```
+      
 	 ```kubectl rollout status deployment/nginx-deployment
 	 ```
 	 
 Declarative: Change spec.Paused boolean
-  - Does not change pod template
+  - Does not change pod template.
   - Does mot trigger revision creation.
 
 - Can make changes or debug while paused.
@@ -1050,7 +1053,9 @@ Declarative: Change spec.Paused boolean
 ### Scaling Deployments
 
 - Imperative: kubectl scale commands
-``` kubectl scale deployments nginx-deployment --replicaa=10
+
+```
+kubectl scale deployments nginx-deployment --replicaa=10
 deployment "nginx-deployment" scaled
 ```
 
@@ -1060,7 +1065,9 @@ deployment "nginx-deployment" scaled
     - Can't rollback scaling that easily.
     
 - Can also scale using horizontal pod autoscaler (HPA)
-  ```kubectl autoscale deployment nginx-deployment --min=10 --max=15 --cpu-percent=80
+
+  ```
+  kubectl autoscale deployment nginx-deployment --min=10 --max=15 --cpu-percent=80
      deployment "nginx-deployment" autoscaled"
      ```
      
@@ -1072,7 +1079,9 @@ Proportinate Scaling
 - Proportinate scaling will scale pods in both ReplicaSets.
 
 Imperative way of scaling
-``` kubectl scale deployments nginx-deployment --replicas=3```
+```
+kubectl scale deployments nginx-deployment --replicas=3
+```
 
 Declarative way of scaling
 
@@ -1080,7 +1089,10 @@ By editing yaml file and updating replicas field and kubectl apply -f name.yaml 
 
   
   Imperative way of changing the image version
- ``` kubectl set image deployment/nginx-deployment nginx=nginx:1.9.1```
+  
+ ```
+ kubectl set image deployment/nginx-deployment nginx=nginx:1.9.1
+ ```
  
  ### Stateful Sets
  
@@ -1110,6 +1122,7 @@ Deployment and Scaling Guarantees.
 - When Pods are being deleted, they are terminated in reverse order from (N-1...0)
 - Before a scaling operation is applied to a Pod, all of its predecessors must be Running and Ready.
 - Before a Pod is terminated, all of its successors must be completely shutdown.
+
 ```
  apiVersion: v1
  kind: StatefulSet
@@ -1131,6 +1144,7 @@ Deployment and Scaling Guarantees.
         port: 8080
 	
 ```
+
 In statefulsets pods have sequentially naming no random generation of names.
 
 ### DaemonSet
