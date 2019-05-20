@@ -1233,3 +1233,94 @@ spec:
 
 ``` kubectl get pods --show-all``` 
 we need to use --show-all flag as the job objects come into existence execute its payload and gets completed. 
+
+
+### Services
+
+- Pod IP addresses keep changing as they go down and come up.
+- For instance, when RepplicaSets or Deployments take pods up/down, IP addresses will change.
+- Services help in maintaining stable network to the group of pods.
+
+### Types of Services
+
+- ClusterIP: 
+    - Statis lifetime IP of service.
+    - Service only accesible within cluster.
+    - ClusterIP address is independent of nackend pods.
+    - Default type of service.
+    - Created by default even for NodePort, LoadBalancer service objects
+    
+- NodePort:
+    - Service will also be exposed on each node on static port.
+    - External clients can hit Node IP + NodePort
+    - Request will be relayed/redirected to clusterIP + NodePort
+    
+- LoadBalancer:
+    - External loadbalancer object
+    - Use LBs provided by AWS, GCP, Azure...
+    - Will automatically create NodePort and ClusterIP services under the hood.
+    - External LB -> NodePort -> ClusterIP -> Backend Pod.
+    
+- ExternalName: 
+    - Map service to external service residing outside the cluster.
+    - Can only be accessed via kube-dns.
+    - No selectors in service spec.
+
+### Networking in Pods and Containers
+
+Docker
+- Host-private private networking
+- Ports must be allocated on node IPs
+- Containers need to allocate ports.
+- Burden of networking lies on containers.
+
+Kubernetes
+- Pod can always communicate with each other
+- Inter- pod communication independent of nodes
+- Pods have private IP addresses(within cluster)
+- Containers within pod: use localhost
+- Containers across pods: pod IP address.
+
+Service = Logical set of backend pods + stable front-end
+Front-end: Static IP address+ Port+DNS Name
+Back-end: Logical set of backend pods(label selector)
+
+ClusterIP
+
+- When service object created, ClusterIP is assigned
+- Tied to service object through lifetime.
+- Independent of lifespan of any backend pod.
+- Any other pods can talk to CLusterIp and always access backend
+- Service objects also has a static port assigned to it.
+
+How labels are matched between pods and service objects.
+
+Service object 
+
+```
+selector:
+  matchLabels:
+    tier: frontend
+  matchExpressions:
+    - {key: tier, operator: In, values: [frontend]}
+    
+```
+
+Pod Object
+
+```
+Labels
+{
+tier: frontend,
+env: prod,
+geo: India
+}
+```
+
+Endpoint Object
+
+- Dynamic list of pods hat are selected by a service.
+- Each service object has an associated endpoint object.
+- Kubernetes evaluates service label selector vs all pods in cluster.
+- Dynamic list is updated as pods are created/deleted.
+
