@@ -649,8 +649,10 @@ Taints added by node controller
   
   To taint a node
   
-  ``` kubectl taint nodes NODE_NAME env=dev:NoScedule```
-  ``` kubectl label deployments/nginx env=dev``` //This makes sure the pods from the deployment are not schduled on tainted node because
+  ``` kubectl taint nodes NODE_NAME env=dev:NoScedule
+  kubectl label deployments/nginx env=dev
+  ```
+  The above cmds makes sure the pods from the deployment are not schduled on tainted node because
   env=dev:NoSchedule the pods with this label will not be scheduled on the node.
   
   
@@ -932,7 +934,7 @@ spec:
 Working with Horizontal Pod AutoScalers
 
   ```
-  $kubectl create hpa 
+  $kubectl create hpa
   $kubectl get hpa 
   $kubectl describe hpa
   $kubectl autoscale rs front-end --min=3 --max=10 --cpu-percent=50
@@ -940,33 +942,41 @@ Working with Horizontal Pod AutoScalers
   
 Thrashing is always a risk with autoscaling. i.e immediate scale up and down based on target metrics.
 Cooldown periods help HPA avoid this
-  --horizontal-pod-autoscaler-downscale-delay
-  --horizontal-pod-autoscaler-upscale-delay
+  -horizontal-pod-autoscaler-downscale-delay
+  -horizontal-pod-autoscaler-upscale-delay
 
 ```
 kubectl delete pods --all
 ```
+
 But replicaset will create the deleted pods from the above cmd  pods associated with is label.
+
 To delete this pods completely. Use the below cmd
+
 ```
 kubectl delete rs/frontend
 ```
 
 To remove the replicationSet controller on the pods.
+
 ```
 kubectl delete rs/frontend --cascade=false
-``` 
+```
+
 This will not delete the pods but the association between replicationSet and pods is detached.
 After this operation pods will not be created on deleton. They are vulnerable to crashes. As they are not governed by replicaset.
 This will delete the replicaSet object.
+
 ```
 kubectl get rs
-``` //This will shows no replicaSet as its deleted
+```
+//This will shows no replicaSet as its deleted
 
 ReplicaSets are lossely couple by the labels. As they are binded using labels. We can delete replicaset without touching underlying pods.
 We can even isolate the pods from the replicaSet by changing the labels.
 
 To modify the live running pod run below cmd. By this we can detach the live pod from repicaset by changing the label. After this replicaset will create again detached pods as it always works for desired state.
+
 ```
 $KUBE_EDITOR="nano" kubectl edit pod frontend-2d5b4  // Scaling replicaSet object
 $nano frontend.yaml //modify replicas field to desired number.
