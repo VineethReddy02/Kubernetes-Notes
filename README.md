@@ -74,7 +74,7 @@ Kubernetes Master Conatins  following components
 3. etcd
 4. Kube-apiserver
 
-*** Cluster to Master ***
+### Cluster to Master
 
 Only APISERVER will be exposed outside(i.e to cluster) none of the other components are 
 exposed outside.
@@ -83,7 +83,7 @@ All cluster to master communication happen with only API-SERVER.
 
 Relatively Secure
 
-*** Master to Cluster ***
+### Master to Cluster
 
 1. APISERVER to Kubelet
 
@@ -107,7 +107,7 @@ These are not safe in public or untusted networks
 	
 	
 	
-*** Where can we run kubernetes ***
+### Where can we run kubernetes 
 
 1. Public Clouds
 	1.AWS
@@ -123,7 +123,7 @@ These are not safe in public or untusted networks
 	1.PWK
 	2.MINIKUBE
 	
-*** Hybrid, Multi-Cloud ***
+### Hybrid, Multi-Cloud
 
 Hybrid = On-prem + Public Cloud
 
@@ -135,7 +135,7 @@ Multi-Cloud = More than 1 public cloud.
 2. Administer with kubefed.
 
 
-**** Individual CLuster ****
+### Individual CLuster
 
 1. All nodes on sae infra.
 2. Administer with kubectl. 
@@ -163,29 +163,29 @@ kubelet, kube-proxy,....
 All these are different cmd line utilities to interact with different components of k8s cluster.
 
 
-**** Kubernetes API ****
+### Kubernetes API
 
 1. APISERVER within conrol plane exposes API endpoints
 2. CLients hit these endpoints with RESTful API calls.
 3. These clients could be command line tools such as kubectl, kubeadm.....
 4. Could also be programmatic calls using client libraries.
 
-*** Objects ***
+### Objects 
 
 1. Kubernetes Objects are persistent entities.
 2. Everything is an object....
 3. Pod, RelplicaSet, Deployment, Node .... all are objects
 4. Send object specification (usually in .yaml or json)
 
-%%%%% IMPORTANT POINTS %%%%%%
+### IMPORTANT POINTS 
 
 -> Pods doen't support auto-healing or auto scaling.
 -> Kube-apiserver - Accepts incming HTTP post requests from users.
-->  Etcd - Stores metadata that forms the state of the cluster.
+-> Etcd - Stores metadata that forms the state of the cluster.
 -> Kube-scheduler - Makes Decision about where and when the pods should run.
 -> CLoud-controller manager - Keeps the actual and desired state of the cluster in synch.
 
-*** THree object Management Methods ***
+### THree object Management Methods
 1. Imperative COmmands
 	No .yaml or config files
 	eg: kubectl run ..., kubectl expose ..., kubectl autscale ..
@@ -217,7 +217,7 @@ Imperative: intent is in command.
 Pro:
 Simple
 
-COns:
+Cons:
 No audit trail or review mechanism
 cant reuse or use in template.
 
@@ -236,7 +236,7 @@ Pros:
 -Robust - files checked into repo
 -One file for multiple operations
 
-#### Declarative Object COnfiguration #### Used in production
+### Declarative Object Configuration used in production
 
 kubectl apply -f configs/
 
@@ -267,7 +267,7 @@ Merging changes.
 		1.Complex- varies by field.
 		
 
-### VOLUMES AND PersistentVolumes ####
+### VOLUMES AND PersistentVolumes
 
 1. Volumes(in general): lifespan of abstraction = lifetime of pod.
 		1. Note that this is longer than lifetime of any container inside pod.
@@ -313,7 +313,7 @@ emptyDir comes with empty volume initially and also when pod restarts it loses a
 5. hostPath
 
 
-emptyDir
+#### emptyDir
 
 This is not persistent. his exists as long as the pod exists. Created as empty volume.
 Share space/state across conatiners in same pod.
@@ -323,7 +323,7 @@ When pod removed/crashes. data lost
 When conatiner crashes data remains
 Usecases: Scartch space, checkpointing
 
-hostPath
+#### hostPath
 
 Mount file/directory from node filesystem into pod
 Uncommon - pods should be independent of nodes
@@ -331,11 +331,11 @@ Makes pod-node coupling tight
 Usecases: Access docker internals, running cAdvisor
 BLock devices or sockets on host
 
-gitRepo
+#### gitRepo
 
 This volume will create an empty directory and go ahead and clone git repo to our volume so that our conatiners can use it.
 
-configMap
+#### configMap
 
 Used to inject paraeters and configuration data into pods.
 configMap volume mount data from configmap object
@@ -460,7 +460,7 @@ We can get by cmd hostname or gethostname function call from libc.
 	  
  
   
-### Services for stable IP Addresses ###
+### Services for stable IP Addresses
 
 Service object - load balancer
 Service = Logical set of backend pods + stable front-end
@@ -468,7 +468,7 @@ Front-end: Static clusterIP address + Port + DNS Name
 Back-end: Logical set of backend pods(label selector)
 
 
-#### Setting up environment varibales #####
+#### Setting up environment varibales
 ```
 spec:
   conatiners:
@@ -537,7 +537,7 @@ etc/podinfo/annotations annotations are available in this file.
 etc/podinfo/labels labels are available in this file.
 
 
-### Conatiner Lifecycle Hooks ###
+### Conatiner Lifecycle Hooks
 
 1. Post Start
 
@@ -591,14 +591,14 @@ nodeSelector (nodes have predefined labels hostname, zone, OS, instance type...)
 -Pods will only reside on nodes that are selected ny nodeSelector
 -Simple but crude - hard constriant
 
-Affinity and Anti-Affinity
+#### Affinity and Anti-Affinity
 
 Node Affinity (nodes have predefined labels hostname, zone, OS, instance type...)
 -steer pod to node
 - can be 'soft'
 -Only affinity (for anti-affinity use taints)
 
-Pod Affinity
+### Pod Affinity
 
 -Steer pods towards or away from pods.
 -Affinity: pods close to each other
@@ -620,7 +620,7 @@ spec:
     disktype: ssd
 ```    
     
-### Taints and Tolerations ###
+### Taints and Tolerations
 
 Using nodeslector you can make sure this pod should run on specific node but using taints and tolerations you can make sure certain pods can only run on certain nodes.
 
@@ -847,7 +847,7 @@ High-priority pod can 'jump the queue'.
 - Low-priority pod maybe pre-empted to make way( if no node currently available to run gigh-priority pod). Preempted pod gets a graceful termination period.
 
 
-### ReplicaSets ###
+### ReplicaSets
 
 Pod
   - Containers inside pod template
