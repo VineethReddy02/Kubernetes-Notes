@@ -129,13 +129,13 @@ Hybrid = On-prem + Public Cloud
 
 Multi-Cloud = More than 1 public cloud.
 
-*** Federated CLusters ***
+### Federated CLusters 
 
 1. Nodes in multiple clusters.
 2. Administer with kubefed.
 
 
-### Individual CLuster
+### Individual lLuster
 
 1. All nodes on sae infra.
 2. Administer with kubectl. 
@@ -185,8 +185,8 @@ All these are different cmd line utilities to interact with different components
 -> Kube-scheduler - Makes Decision about where and when the pods should run.
 -> CLoud-controller manager - Keeps the actual and desired state of the cluster in synch.
 
-### THree object Management Methods
-1. Imperative COmmands
+### Three object Management Methods
+1. Imperative Commands
 	No .yaml or config files
 	eg: kubectl run ..., kubectl expose ..., kubectl autscale ..
 	For this happen the objects should be live in cluster and this is the least robust way of managing objects.
@@ -206,7 +206,7 @@ All these are different cmd line utilities to interact with different components
 	
 Note: Don't mix and match different methods in handling k8s objects.
 
-### Imperative COmmands ####
+### Imperative Commands ####
 
 kubectl run nginx --image nginx
 kubectl create deployment nginx --image nginx
@@ -222,7 +222,7 @@ No audit trail or review mechanism
 cant reuse or use in template.
 
 
-#### Imperative Object COnfiguration #####
+#### Imperative Object Configuration
 
 kubectl create -f nginx.yaml
 kubectl delete -f nginx.yaml
@@ -366,12 +366,13 @@ data:
 	 key: special.how
 ```	 
 
-secret
+### Secret
 
 Pass sensitive information to pods.
 You can store secrets using kubernetes api and mount those secrets as files these files will be available to use by pods.
 using the secret volume
-You should know secrets are backed by RAM based file system which ensures contents of this files are never written to non volatile storage
+You should know secrets are backed by RAM based file system which ensures contents of this files are never written to non volatile storage.
+
 ```
 	apiVersion: v1
 	kind: Secret
@@ -398,6 +399,7 @@ spec:
 	  secret:
 	     secretName: test-secret
 ```
+
 We can access this secret by getting into the container shell and by going to etc/secret-volume.
 
 We can create secrets directly from files.
