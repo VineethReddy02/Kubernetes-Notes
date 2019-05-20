@@ -179,11 +179,11 @@ All these are different cmd line utilities to interact with different components
 
 ### IMPORTANT POINTS 
 
--> Pods doen't support auto-healing or auto scaling.
--> Kube-apiserver - Accepts incming HTTP post requests from users.
--> Etcd - Stores metadata that forms the state of the cluster.
--> Kube-scheduler - Makes Decision about where and when the pods should run.
--> CLoud-controller manager - Keeps the actual and desired state of the cluster in synch.
+- Pods doen't support auto-healing or auto scaling.
+- Kube-apiserver - Accepts incming HTTP post requests from users.
+- Etcd - Stores metadata that forms the state of the cluster.
+- Kube-scheduler - Makes Decision about where and when the pods should run.
+- CLoud-controller manager - Keeps the actual and desired state of the cluster in synch.
 
 ### Three object Management Methods
 1. Imperative Commands
@@ -207,29 +207,29 @@ All these are different cmd line utilities to interact with different components
 Note: Don't mix and match different methods in handling k8s objects.
 
 ### Imperative Commands ####
-
+```
 kubectl run nginx --image nginx
 kubectl create deployment nginx --image nginx
+```
+- No config file.
+- Imperative: intent is in command.
 
-No config file.
-Imperative: intent is in command.
+- Pro:
+    - Simple
 
-Pro:
-Simple
-
-Cons:
-No audit trail or review mechanism
-cant reuse or use in template.
+- Cons:
+    - No audit trail or review mechanism
+    - Cant reuse or use in template.
 
 
 #### Imperative Object Configuration
-
+```
 kubectl create -f nginx.yaml
 kubectl delete -f nginx.yaml
 kubectl replace -f nginx.yaml
-
+```
 config file required
-dtill imperative: intent is in cmd.
+Still imperative: intent is in cmd.
 
 Pros:
 -still simple
@@ -248,32 +248,32 @@ Pros;
 -k8s will automatically figure out intents
 -Can specify multiple files/directories recursively.
 
-Declarative COnfiguration has three phases.
+Declarative Configuration has three phases.
 
-1. Live object configuration
-2. Current object configuration file.
-3. Last-applied object configuration file.
+- Live object configuration
+- Current object configuration file.
+- Last-applied object configuration file.
 
 Merging changes.
 
-1. Primitive fields
-		1. String, int, boolean,images or replicas
-		2. Replace old state with current object configuration file.
+- Primitive fields
+    - String, int, boolean,images or replicas
+    - Replace old state with current object configuration file.
 		
-2. Map fields 
-		1. Merge old state with current state with current object configuration file.
+- Map fields 
+    - Merge old state with current state with current object configuration file.
 
-3. List fields
-		1.Complex- varies by field.
+- List fields
+    - Complex- varies by field.
 		
 
 ### VOLUMES AND PersistentVolumes
 
-1. Volumes(in general): lifespan of abstraction = lifetime of pod.
-		1. Note that this is longer than lifetime of any container inside pod.
-		2. Persistent Volumes.
+- Volumes(in general): lifespan of abstraction = lifetime of pod.
+    - Note that this is longer than lifetime of any container inside pod.
+    - Persistent Volumes.
 		
-2. Persistent Volumes: lifetime of abstraction independent of pod lifetime.
+- Persistent Volumes: lifetime of abstraction independent of pod lifetime.
 
 
 Using Volumes
