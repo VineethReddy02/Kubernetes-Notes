@@ -1324,3 +1324,89 @@ Endpoint Object
 - Kubernetes evaluates service label selector vs all pods in cluster.
 - Dynamic list is updated as pods are created/deleted.
 
+No selector - No Endpoint Object
+
+- No endpoint object created
+   - Need to manually map the service to specific IP or address.
+- ExternalName service: this is a service with no selector, no port
+   - alias to external service in another cluster.
+
+Services for STable IP Addresses
+
+From Within Cluster
+
+- Endpoint object
+- Dynamic list of pods
+- Based on label selection
+
+From Outside Cluster
+
+- Virtual IP
+- Can be accessed via any Node IP
+- Node will relay to clusterIP
+
+### Multi-Port Services
+
+- Simply add multiple ports in the servie spec
+- Each port must be named
+  - will have DNS SRV record
+  
+ ```
+ kind: Service
+ apiVersion:: v1
+ metadata:
+   name: my-service
+ spec:
+   selector: 
+     app: MyApp
+   ports:
+   - name: http
+     protocol: TCP
+     port: 80
+     targetPort: 9376
+   - name: https
+     protocol: TCP
+     port: 443
+     targetPort: 9377
+     ```
+     
+     ### Service Discovery
+     
+- Say a pod knows it needs to access some service.
+- How do containers in that pod actually go about doing so?
+- This is called Service Discovery
+- Two methods:
+  - DNS lookup: Preferred
+  - Environment Variables.
+  
+  ### DNS Service Discovery
+  
+  - Requires dns add-on
+  - DNS server listens on creation of new services.
+  - When new service object created, DNS records created.
+  - All nodes can resolve service using name alone.
+ 
+ #### DNS Service Discovery of ClusterIP
+ 
+ - Service name: my-service, Namespace: my-namespace
+ - Pods in my-namespace: simply DNS name lookup my-service.
+ - Pods in other namespaces: DNS name lookup my-service.my-namespace
+ - DNS Name lookup will return CLusterIP of service.
+ 
+ #### DNS lookup
+ 
+ - Dynamic
+ - Preferred
+ - Requires DNS add-on
+ 
+ #### Environment Variables
+ 
+  - Static
+  - Kubelet configures env variables for containers.
+  - Each service has environment variables for
+     - host
+     - port
+   - Static - not updated after pod creation.
+   
+   
+     
