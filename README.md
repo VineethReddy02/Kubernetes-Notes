@@ -1408,5 +1408,20 @@ From Outside Cluster
      - port
    - Static - not updated after pod creation.
    
-   
+#### Headless Service
+
+Usually a clusterIP is created only once no matter how many ever pods come and go. This is static.
+
+- Service without CLuster IP = Headless service
+- Use if you don't need
+  - Load balancing.
+  - cluster IP.
+- Headless with selector? Associate with pods in this cluster.
+- Headless without selector? Forward to ExternalName services
+  - resolution for service in another cluster.
+  
+  
+
+  
+
      
