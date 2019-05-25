@@ -1368,9 +1368,9 @@ From Outside Cluster
      protocol: TCP
      port: 443
      targetPort: 9377
-     ```
-     
-     ### Service Discovery
+```     
+
+### Service Discovery
      
 - Say a pod knows it needs to access some service.
 - How do containers in that pod actually go about doing so?
@@ -1458,6 +1458,7 @@ rules:
     resources: ["pods"] // only for pods objects
     verbs: ["gets","watch","list"] // this are actions can be performed.
  ```
+ 
  As the above object is role its confined to a namespace. After creating the above object in k8s we don't see any difference till we create rolebinding object.
  
  A ClusterRole can be used to grant the same permissions as a Role, but because ther are cluster scoped, they can also be used to grant access to:
@@ -1476,6 +1477,7 @@ rules:
    - resources: ["secrets"]
       verbs: ["get","watch","list"]
   ```
+  
   Once the role is created it can be bound to rolebind or clusterrolebinding.
   A rolebinding can be used by not only role but also clusterrole. The identities bound can be either users, groups or service accounts.
   
@@ -1493,9 +1495,11 @@ rules:
     kind: Role  // You bind here cluster role as well but this role binding is applicable only to namespace that refered in metadata.
     name: pod-reader // This refers to the role with name pod-reader.
     apiGroup: rbac.authorization.k8s.io
-    ```
-    ClusterRoleBinding doesn't include namespace field as it is applicable to the cluster as whole.
-    ```
+ ```
+    
+   ClusterRoleBinding doesn't include namespace field as it is applicable to the cluster as whole.
+   
+  ```
    kind: ClusterRoleBinding
    apiVersion: rbac.authorization.k8s.io/v1
    metadata:
@@ -1508,8 +1512,9 @@ rules:
      kind: ClusterRole
      name: secret-reader
      apiGroup: rbac.authorization.k8s.io
-     ```
-  
+ ```
+ 
+ 
   
   
  
