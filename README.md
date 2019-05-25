@@ -1421,7 +1421,96 @@ Usually a clusterIP is created only once no matter how many ever pods come and g
   - resolution for service in another cluster.
   
   
+### RBAC (Role based Access Control)
+
+#### Identity and Access Management (IAM)
+- Identities
+  - Individual Users(for users)
+  - Groups(for users)
+  - Service Accounts( not for humans)
+  
+- Access
+  - RBAC
+  - ACLs(Access Control List)
+  
+RBAC has two types of Roles
+
+- Roles: They govern the permissions for set of resources within namespace. 
+- ClusterRoles: Apply across entire cluster, All namespaces in cluster.
+
+#### There are two types of bindings 
+
+This are used to bind the identities and access
+- RoleBinding: Bind to specific namespace, Can bind either Role or ClusterRole.
+- ClusterRoleBinding: Bind across entire clutser, all namespaces in cluster, Can bind either Role or ClusterRole.
 
   
+A role contains rules that represent a group of permissions.
 
-     
+```
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata: 
+  namespace: default //Applicable to default namespace
+  name: pod-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods"] // only for pods objects
+    verbs: ["gets","watch","list"] // this are actions can be performed.
+ ```
+ As the above object is role its confined to a namespace. After creating the above object in k8s we don't see any difference till we create rolebinding object.
+ 
+ A ClusterRole can be used to grant the same permissions as a Role, but because ther are cluster scoped, they can also be used to grant access to:
+ 
+ - cluster-scoped resources (like nodes)
+ - non-resources endpoints(like "/healthz")
+ - namespaced resources (like pods) across all namespaces (needed to run kubectl get pods --all-namespaces, for example)
+ 
+ ```
+ kind: ClusterRole
+ apiVersion: rbac.authorization.k8s.io/v1
+ metadata:
+ 	name: secret-reader
+   rules:
+   - apiGroups: [""]
+   - resources: ["secrets"]
+      verbs: ["get","watch","list"]
+  ```
+  Once the role is created it can be bound to rolebind or clusterrolebinding.
+  A rolebinding can be used by not only role but also clusterrole. The identities bound can be either users, groups or service accounts.
+  
+  ```
+  kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: read-pods
+    namespace: default
+  subjects:
+  - kind: User
+    name: jane
+    apiGroup: rbac.authorization.k8s.io
+  roleRef:
+    kind: Role  // You bind here cluster role as well but this role binding is applicable only to namespace that refered in metadata.
+    name: pod-reader // This refers to the role with name pod-reader.
+    apiGroup: rbac.authorization.k8s.io
+    ```
+    ClusterRoleBinding doesn't include namespace field as it is applicable to the cluster as whole.
+    ```
+   kind: ClusterRoleBinding
+   apiVersion: rbac.authorization.k8s.io/v1
+   metadata:
+     name: read-secrets-global
+   subjects:
+   - kind: Group
+     name: manager
+     apiGroup: rbac.authorization.k8s.io
+   roleRef:
+     kind: ClusterRole
+     name: secret-reader
+     apiGroup: rbac.authorization.k8s.io
+     ```
+  
+  
+  
+ 
+ 
