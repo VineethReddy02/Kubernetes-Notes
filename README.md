@@ -1552,4 +1552,5 @@ Service	v1
 StatefulSet	apps/v1
  
  | Kind  |  apiVersion |
+ |---|---|
  |CertificateSigningRequest  | certificates.k8s.io/v1beta1 |
